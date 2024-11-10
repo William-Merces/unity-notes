@@ -23,6 +23,7 @@ import {
     Link as LinkIcon
 } from '@mui/icons-material';
 import { useLesson } from '@/contexts/LessonContext';
+import type { Selection } from '@/types';
 
 // Exemplo de estrutura de dados para os discursos
 const conferenceBaseUrl = 'https://www.churchofjesuschrist.org/study/general-conference/2024/10/';
@@ -51,15 +52,15 @@ export default function TalkSelector() {
     };
 
     const handleAddHighlight = () => {
-        const newHighlight: Selection = {
+        const newHighlight = {
             id: Date.now(),
-            type: 'highlight',
+            type: 'highlight' as const,
             content: selectedText,
-            order: lessonData.selections.length + 1
-        };
+            order: lessonData.selections ? lessonData.selections.length + 1 : 1
+        } satisfies Selection;
 
         updateLesson({
-            selections: [...lessonData.selections, newHighlight]
+            selections: [...(lessonData.selections || []), newHighlight]
         });
 
         setShowSelectionTools(false);

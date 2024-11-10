@@ -9,10 +9,15 @@ interface LessonContextType {
 }
 
 const LessonContext = createContext<LessonContextType | undefined>(undefined);
-
 const defaultLessonData: LessonData = {
     title: "A Importância da Oração",
     date: "10 de Novembro, 2024",
+    talk: {
+        id: "default",
+        title: "Selecione um discurso",
+        author: "",
+        url: ""
+    },
     prayers: {
         opening: "João Silva",
         closing: "Maria Santos"
@@ -29,19 +34,7 @@ const defaultLessonData: LessonData = {
             link: "https://www.churchofjesuschrist.org/music/library/hymns/how-firm-a-foundation?lang=por"
         }
     },
-    highlights: [
-        {
-            id: 1,
-            title: "Leitura 1",
-            content: "A oração é nossa linha direta de comunicação com o Pai Celestial..."
-        }
-    ],
-    scriptures: [
-        {
-            reference: "2 Néfi 32:8-9",
-            text: "E agora, meus amados irmãos, percebo que ainda meditais em vosso coração..."
-        }
-    ],
+    selections: [],
     questions: [
         {
             id: 1,
