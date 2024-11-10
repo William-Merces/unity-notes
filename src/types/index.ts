@@ -28,22 +28,6 @@ export interface Highlight {
     content: string;
 }
 
-export interface LessonData {
-    title: string;
-    date: string;
-    prayers: Prayer;
-    hymns: {
-        opening: Hymn;
-        closing: Hymn;
-    };
-    highlights: Highlight[];
-    scriptures: Scripture[];
-    questions: Question[];
-}
-
-export type SharePlatform = 'facebook' | 'twitter' | 'whatsapp';
-
-
 export interface Talk {
     id: string;
     title: string;
@@ -56,8 +40,8 @@ export interface Selection {
     id: number;
     type: 'highlight' | 'scripture' | 'student-highlight';
     content: string;
-    author?: string; // Para destaques dos alunos
-    reference?: string; // Para escrituras
+    author?: string;
+    reference?: string;
     order: number;
 }
 
@@ -73,3 +57,5 @@ export interface LessonData {
     selections: Selection[];
     questions: Question[];
 }
+
+export type SharePlatform = 'facebook' | 'twitter' | 'whatsapp';
