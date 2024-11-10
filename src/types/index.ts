@@ -56,10 +56,10 @@ export interface Selection {
     id: number;
     type: 'highlight' | 'scripture' | 'student-highlight';
     content: string;
-    author?: string; // Para destaques dos alunos
-    reference?: string; // Para escrituras
+    author?: string;
+    reference?: string;
     order: number;
-}
+  }
 
 export interface LessonData {
     title: string;
