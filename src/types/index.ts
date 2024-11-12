@@ -14,6 +14,29 @@ export interface Scripture {
     text: string;
 }
 
+
+export interface ClassInfo {
+    name: string;
+    type: 'quorum' | 'society';
+    ward: string;
+    stake: string;
+}
+
+export interface LessonData {
+    title: string;
+    date: string;
+    classInfo: ClassInfo;
+    talk: Talk;
+    prayers: Prayer;
+    hymns: {
+        opening: Hymn;
+        closing: Hymn;
+    };
+    announcements: string;
+    selections: Selection[];
+    questions: Question[];
+}
+
 export interface Question {
     id: number;
     type: 'open' | 'poll';
@@ -54,6 +77,7 @@ export interface LessonData {
         opening: Hymn;
         closing: Hymn;
     };
+    announcements: string;
     selections: Selection[];
     questions: Question[];
 }

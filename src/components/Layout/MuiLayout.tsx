@@ -1,39 +1,20 @@
-'use client';
+'use client'
 
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
-import { LessonProvider } from '@/contexts/LessonContext';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { theme } from '@/utils/constants'; // Se não tiver esse arquivo, me avise
 
-const theme = createTheme({
-    palette: {
-        primary: {
-            main: '#1976d2',
-        },
-        secondary: {
-            main: '#dc004e',
-        },
-    },
-    components: {
-        MuiBottomNavigation: {
-            styleOverrides: {
-                root: {
-                    height: 56,
-                },
-            },
-        },
-    },
-});
+interface MuiLayoutProps {
+    children: React.ReactNode;
+}
 
-export default function MuiLayout({ children }: { children: React.ReactNode }) {
+export default function MuiLayout({ children }: MuiLayoutProps) {
     return (
-        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+        <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
-                <CssBaseline enableColorScheme />
-                <LessonProvider>
-                    <div suppressHydrationWarning>
-                        {children}
-                    </div>
-                </LessonProvider>
+                <CssBaseline />
+                {children}
             </ThemeProvider>
         </AppRouterCacheProvider>
     );
