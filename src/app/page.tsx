@@ -1,25 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card/card';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button/button';
-import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card/card';
+import { Skeleton } from '@/components/ui/skeleton/skeleton';
+import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
+import { ptBR } from 'date-fns/locale';
+import { PlusCircle, ChevronRight, BookOpen, User2, Calendar, Check } from 'lucide-react';
 
 interface Lesson {
     id: string;
     title: string;
     createdAt: string;
-    teacher: {
+    teacher?: {
         name: string;
     };
+    isActive: boolean;
 }
 
 export default function Home() {
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [loading, setLoading] = useState(true);
-    const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
-    const [newTitle, setNewTitle] = useState('');
-    const router = useRouter();
 
     useEffect(() => {
         fetch('/api/lessons')
@@ -29,127 +31,114 @@ export default function Home() {
                     setLessons(data);
                 }
             })
-            .catch(console.error)
             .finally(() => setLoading(false));
     }, []);
 
-    const handleEdit = (lesson: Lesson) => {
-        setEditingLesson(lesson);
-        setNewTitle(lesson.title);
-    };
-
-    const handleSave = async () => {
-        if (editingLesson) {
-            const response = await fetch(`/api/lessons?id=${editingLesson.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ ...editingLesson, title: newTitle })
-            });
-            const data = await response.json();
-            if (!data.error) {
-                setLessons(lessons.map(lesson => (lesson.id === editingLesson.id ? data : lesson)));
-                setEditingLesson(null);
-            }
-        }
-    };
-
-    const handleDelete = async (id: string) => {
-        const response = await fetch(`/api/lessons?id=${id}`, {
-            method: 'DELETE'
-        });
-        const data = await response.json();
-        if (!data.error) {
-            setLessons(lessons.filter(lesson => lesson.id !== id));
-        }
-    };
-
     if (loading) {
         return (
-            <main className="min-h-screen p-4">
-                <div className="w-full max-w-4xl mx-auto">
-                    <Card className="p-8">
-                        <div className="flex items-center justify-center">
-                            <p className="text-lg">Carregando aulas...</p>
-                        </div>
-                    </Card>
+            <main className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+                <div className="container max-w-4xl px-4 py-6 mx-auto">
+                    <div className="flex items-center justify-between mb-8">
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-10 w-32" />
+                    </div>
+                    {[1, 2, 3].map((i) => (
+                        <Card key={i} className="mb-4">
+                            <CardHeader>
+                                <Skeleton className="h-6 w-3/4 mb-2" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-4 w-1/3" />
+                            </CardContent>
+                        </Card>
+                    ))}
                 </div>
             </main>
         );
     }
 
     return (
-        <main className="min-h-screen p-4">
-            <div className="w-full max-w-4xl mx-auto">
-                <div className="flex flex-col items-center mb-6">
-                    <h1 className="text-3xl font-bold text-center">UNITY NOTES</h1>
-                    <p className="text-lg text-center text-gray-600">Todos na mesma página</p>
-                </div>
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold">Aulas Disponíveis</h2>
-                    <Button onClick={() => router.push('/criar-aula')}>
-                        Criar Nova Aula
-                    </Button>
+        <main className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+            <div className="container max-w-4xl px-4 py-6 mx-auto">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Minhas Aulas</h1>
+                        <p className="text-muted-foreground mt-1">
+                            {lessons.length} {lessons.length === 1 ? 'aula preparada' : 'aulas preparadas'}
+                        </p>
+                    </div>
+                    <Link href="/criar-aula" className="w-full sm:w-auto">
+                        <Button className="w-full sm:w-auto gap-2" size="lg">
+                            <PlusCircle className="h-5 w-5" />
+                            Nova Aula
+                        </Button>
+                    </Link>
                 </div>
 
-                {lessons.length === 0 ? (
-                    <Card>
-                        <CardContent className="p-8">
-                            <p className="text-center text-muted-foreground">
-                                Nenhuma aula disponível no momento.
-                            </p>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <div className="space-y-4">
-                        {lessons.map((lesson) => (
+                <div className="space-y-4">
+                    {lessons.length === 0 ? (
+                        <Card className="border-dashed">
+                            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                                <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
+                                <h3 className="text-lg font-semibold mb-2">Nenhuma aula encontrada</h3>
+                                <p className="text-muted-foreground mb-4 max-w-sm">
+                                    Comece criando sua primeira aula. É fácil e rápido!
+                                </p>
+                                <Link href="/criar-aula">
+                                    <Button variant="outline" className="gap-2">
+                                        <PlusCircle className="h-4 w-4" />
+                                        Criar Primeira Aula
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        lessons.map(lesson => (
                             <Card
                                 key={lesson.id}
-                                className="cursor-pointer hover:bg-accent/50 transition-colors p-4"
+                                className={`transition-all hover:shadow-md ${lesson.isActive ? 'border-primary/50' : ''}`}
                             >
-                                <CardHeader>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            {editingLesson && editingLesson.id === lesson.id ? (
-                                                <input
-                                                    type="text"
-                                                    value={newTitle}
-                                                    onChange={(e) => setNewTitle(e.target.value)}
-                                                    className="border p-2"
-                                                />
-                                            ) : (
-                                                <CardTitle>{lesson.title}</CardTitle>
+                                <CardHeader className="pb-3">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div className="space-y-1">
+                                            <CardTitle className="flex items-center gap-2">
+                                                {lesson.title}
+                                                {lesson.isActive && (
+                                                    <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">
+                                                        <Check className="h-3 w-3" />
+                                                        Ativa
+                                                    </span>
+                                                )}
+                                            </CardTitle>
+                                            {lesson.teacher && (
+                                                <div className="flex items-center text-sm text-muted-foreground">
+                                                    <User2 className="h-3 w-3 mr-1" />
+                                                    {lesson.teacher.name}
+                                                </div>
                                             )}
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                Professor: {lesson.teacher.name}
-                                            </p>
                                         </div>
-                                        <div className="flex space-x-2">
-                                            <Button onClick={() => router.push(`/ver-aula?id=${lesson.id}`)}>
-                                                Ver
-                                            </Button>
-                                            {editingLesson && editingLesson.id === lesson.id ? (
-                                                <>
-                                                    <Button onClick={handleSave}>Salvar</Button>
-                                                    <Button onClick={() => setEditingLesson(null)}>Cancelar</Button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Button onClick={() => handleEdit(lesson)}>Renomear</Button>
-                                                    <Button onClick={() => handleDelete(lesson.id)}>Excluir</Button>
-                                                </>
-                                            )}
+                                        <div className="flex items-center gap-2 self-start sm:self-center">
+                                            <div className="flex items-center text-xs text-muted-foreground">
+                                                <Calendar className="h-3 w-3 mr-1" />
+                                                {formatDistanceToNow(new Date(lesson.createdAt), {
+                                                    addSuffix: true,
+                                                    locale: ptBR
+                                                })}
+                                            </div>
+                                            <Link href={`/ver-aula?id=${lesson.id}`}>
+                                                <Button variant="outline" className="gap-2">
+                                                    Abrir Aula
+                                                    <ChevronRight className="h-4 w-4" />
+                                                </Button>
+                                            </Link>
                                         </div>
                                     </div>
-                                    <p className="text-sm text-muted-foreground">
-                                        {new Date(lesson.createdAt).toLocaleDateString('pt-BR')}
-                                    </p>
                                 </CardHeader>
                             </Card>
-                        ))}
-                    </div>
-                )}
+                        ))
+                    )}
+                </div>
             </div>
         </main>
     );
