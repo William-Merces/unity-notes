@@ -1,101 +1,156 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card/card';
+import { Button } from '@/components/ui/button/button';
+import { useRouter } from 'next/navigation';
+
+interface Lesson {
+    id: string;
+    title: string;
+    createdAt: string;
+    teacher: {
+        name: string;
+    };
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    const [lessons, setLessons] = useState<Lesson[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+    const [newTitle, setNewTitle] = useState('');
+    const router = useRouter();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    useEffect(() => {
+        fetch('/api/lessons')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.error) {
+                    setLessons(data);
+                }
+            })
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleEdit = (lesson: Lesson) => {
+        setEditingLesson(lesson);
+        setNewTitle(lesson.title);
+    };
+
+    const handleSave = async () => {
+        if (editingLesson) {
+            const response = await fetch(`/api/lessons?id=${editingLesson.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ...editingLesson, title: newTitle })
+            });
+            const data = await response.json();
+            if (!data.error) {
+                setLessons(lessons.map(lesson => (lesson.id === editingLesson.id ? data : lesson)));
+                setEditingLesson(null);
+            }
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        const response = await fetch(`/api/lessons?id=${id}`, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        if (!data.error) {
+            setLessons(lessons.filter(lesson => lesson.id !== id));
+        }
+    };
+
+    if (loading) {
+        return (
+            <main className="min-h-screen p-4">
+                <div className="w-full max-w-4xl mx-auto">
+                    <Card className="p-8">
+                        <div className="flex items-center justify-center">
+                            <p className="text-lg">Carregando aulas...</p>
+                        </div>
+                    </Card>
+                </div>
+            </main>
+        );
+    }
+
+    return (
+        <main className="min-h-screen p-4">
+            <div className="w-full max-w-4xl mx-auto">
+                <div className="flex flex-col items-center mb-6">
+                    <h1 className="text-3xl font-bold text-center">UNITY NOTES</h1>
+                    <p className="text-lg text-center text-gray-600">Todos na mesma página</p>
+                </div>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold">Aulas Disponíveis</h2>
+                    <Button onClick={() => router.push('/criar-aula')}>
+                        Criar Nova Aula
+                    </Button>
+                </div>
+
+                {lessons.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-8">
+                            <p className="text-center text-muted-foreground">
+                                Nenhuma aula disponível no momento.
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="space-y-4">
+                        {lessons.map((lesson) => (
+                            <Card
+                                key={lesson.id}
+                                className="cursor-pointer hover:bg-accent/50 transition-colors p-4"
+                            >
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            {editingLesson && editingLesson.id === lesson.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={newTitle}
+                                                    onChange={(e) => setNewTitle(e.target.value)}
+                                                    className="border p-2"
+                                                />
+                                            ) : (
+                                                <CardTitle>{lesson.title}</CardTitle>
+                                            )}
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                Professor: {lesson.teacher.name}
+                                            </p>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                            <Button onClick={() => router.push(`/ver-aula?id=${lesson.id}`)}>
+                                                Ver
+                                            </Button>
+                                            {editingLesson && editingLesson.id === lesson.id ? (
+                                                <>
+                                                    <Button onClick={handleSave}>Salvar</Button>
+                                                    <Button onClick={() => setEditingLesson(null)}>Cancelar</Button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Button onClick={() => handleEdit(lesson)}>Renomear</Button>
+                                                    <Button onClick={() => handleDelete(lesson.id)}>Excluir</Button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                        {new Date(lesson.createdAt).toLocaleDateString('pt-BR')}
+                                    </p>
+                                </CardHeader>
+                            </Card>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </main>
+    );
 }
